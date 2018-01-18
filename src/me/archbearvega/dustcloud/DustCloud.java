@@ -90,7 +90,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 	public void progress() {
 		Block b = player.getLocation().subtract(0, 1, 0).getBlock();
 		
-		if(isEarthbendable(b.getType())){
+		if(EarthAbility.isEarthbendable(player, b)){
 			
 			Location center = playerLocation;
 			Material m;
@@ -100,7 +100,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 					if(center.subtract(0,1,0).getBlock().getType()== Material.SAND){
 						m = Material.SAND;
 					}
-					else if(isEarthbendable(center.subtract(0,1,0).getBlock().getType())){
+					else if (EarthAbility.isEarthbendable(player, center.subtract(0, 1, 0).getBlock())){
 						m = center.subtract(0,1,0).getBlock().getType();
 					}
 					else{
@@ -141,7 +141,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		    for (int y = -radius; y < radius; y++) {
 		        for (int z = -radius; z < radius; z++) {
 		            if (x * x + y * y + z * z <= radius * radius) { 
-		            	if(isEarthbendable((center.clone().add(x, y, z).getBlock()).getType())){
+		            	if(EarthAbility.isEarthbendable(player, center.clone().add(x, y, z).getBlock())) {
 		            	block = center.clone().add(x, y, z).getBlock();
 		            	blocks.add(block);
 		            	return blocks;
