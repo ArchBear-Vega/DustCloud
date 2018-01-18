@@ -20,11 +20,6 @@ import com.projectkorra.projectkorra.configuration.ConfigManager;
 import com.projectkorra.projectkorra.util.ParticleEffect;
 import com.projectkorra.projectkorra.util.ParticleEffect.BlockData;
 
-
-
-
-
-
 public class DustCloud extends EarthAbility implements AddonAbility {
 	
 	public static final String NAME = "DustCloud";
@@ -32,6 +27,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 	private int radius = 5;
 	private long duration = 4500;
 	private long cooldown = 7000;
+	private long time;
 	private int potDuration = 2000;
 	private int minEarthBlocksRequired = 6;
 	
@@ -51,6 +47,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		minEarthBlocksRequired = ConfigManager.defaultConfig.get().getInt("AddonAbilities.ArchBear_Vega."+NAME+".minSourceAmount");
 		
 		playerLocation = player.getLocation();
+		time = System.currentTimeMillis();
 		start();
 		
 	}
@@ -90,7 +87,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		Block b = player.getLocation().subtract(0, 1, 0).getBlock();
 		
 		if(EarthAbility.isEarthbendable(player, b)){
-			
+			bPlayer.addCooldown(this);
 			Location center = playerLocation;
 			Material m;
 			List<Block> validSources = getBlocksInRadius(center);
@@ -105,8 +102,6 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 					else{
 						m = Material.DIRT;
 					}
-			
-					doEffect(player, m, center);
 					
 					for (Entity e : GeneralMethods.getEntitiesAroundPoint(center, radius)) {
 		    
@@ -122,13 +117,16 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 			
 					}
 					
-					if(this.getStartTime() + duration < System.currentTimeMillis()){
-						bPlayer.addCooldown(this);
+					if (System.currentTimeMillis() > time + duration) {
 						remove();
+					} else {
+						doEffect(player, m, center);
 					}
 		
 				}
 		}
+		remove();
+		return;
 	}
 	public List<Block> getBlocksInRadius(Location center){
 		Block block = null;
@@ -154,6 +152,8 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 			ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
 			if (m == Material.SAND || m == Material.GRAVEL){
 				ParticleEffect.FALLING_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
+			} else {
+				ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 500);
 			}
 		}
 	}
