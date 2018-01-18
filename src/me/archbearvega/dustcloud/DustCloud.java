@@ -31,7 +31,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 	
 	private int radius = 5;
 	private long duration = 4500;
-	private long cooldown = 6500;
+	private long cooldown = 7000;
 	private int potDuration = 2000;
 	private int minEarthBlocksRequired = 6;
 	
@@ -51,7 +51,6 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		minEarthBlocksRequired = ConfigManager.defaultConfig.get().getInt("AddonAbilities.ArchBear_Vega."+NAME+".minSourceAmount");
 		
 		playerLocation = player.getLocation();
-		bPlayer.addCooldown(this);
 		start();
 		
 	}
@@ -107,11 +106,8 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 						m = Material.DIRT;
 					}
 			
-					ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
-			
-					if (m == Material.SAND || m == Material.GRAVEL){
-						ParticleEffect.FALLING_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
-					}
+					doEffect(player, m, center);
+					
 					for (Entity e : GeneralMethods.getEntitiesAroundPoint(center, radius)) {
 		    
 						if (e instanceof LivingEntity && e.getEntityId() != player.getEntityId()) { 
@@ -127,6 +123,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 					}
 					
 					if(this.getStartTime() + duration < System.currentTimeMillis()){
+						bPlayer.addCooldown(this);
 						remove();
 					}
 		
@@ -151,6 +148,14 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		    }
 		}
 		return blocks;
+	}
+	public void doEffect(Player player, Material m, Location center) {
+		if (player.isSneaking()) {
+			ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
+			if (m == Material.SAND || m == Material.GRAVEL){
+				ParticleEffect.FALLING_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
+			}
+		}
 	}
 
 	@Override
