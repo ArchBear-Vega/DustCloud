@@ -20,18 +20,14 @@ import com.projectkorra.projectkorra.configuration.ConfigManager;
 import com.projectkorra.projectkorra.util.ParticleEffect;
 import com.projectkorra.projectkorra.util.ParticleEffect.BlockData;
 
-
-
-
-
-
 public class DustCloud extends EarthAbility implements AddonAbility {
 	
 	public static final String NAME = "DustCloud";
 	
 	private int radius = 5;
 	private long duration = 4500;
-	private long cooldown = 6500;
+	private long cooldown = 7000;
+	private long time;
 	private int potDuration = 2000;
 	private int minEarthBlocksRequired = 6;
 	
@@ -51,7 +47,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		minEarthBlocksRequired = ConfigManager.defaultConfig.get().getInt("AddonAbilities.ArchBear_Vega."+NAME+".minSourceAmount");
 		
 		playerLocation = player.getLocation();
-		bPlayer.addCooldown(this);
+		time = System.currentTimeMillis();
 		start();
 		
 	}
@@ -90,8 +86,8 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 	public void progress() {
 		Block b = player.getLocation().subtract(0, 1, 0).getBlock();
 		
-		if(isEarthbendable(b.getType())){
-			
+		if(EarthAbility.isEarthbendable(player, b)){
+			bPlayer.addCooldown(this);
 			Location center = playerLocation;
 			Material m;
 			List<Block> validSources = getBlocksInRadius(center);
@@ -100,18 +96,13 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 					if(center.subtract(0,1,0).getBlock().getType()== Material.SAND){
 						m = Material.SAND;
 					}
-					else if(isEarthbendable(center.subtract(0,1,0).getBlock().getType())){
+					else if (EarthAbility.isEarthbendable(player, center.subtract(0, 1, 0).getBlock())){
 						m = center.subtract(0,1,0).getBlock().getType();
 					}
 					else{
 						m = Material.DIRT;
 					}
-			
-					ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
-			
-					if (m == Material.SAND || m == Material.GRAVEL){
-						ParticleEffect.FALLING_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
-					}
+					
 					for (Entity e : GeneralMethods.getEntitiesAroundPoint(center, radius)) {
 		    
 						if (e instanceof LivingEntity && e.getEntityId() != player.getEntityId()) { 
@@ -126,12 +117,16 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 			
 					}
 					
-					if(this.getStartTime() + duration < System.currentTimeMillis()){
+					if (System.currentTimeMillis() > time + duration) {
 						remove();
+					} else {
+						doEffect(player, m, center);
 					}
 		
 				}
 		}
+		remove();
+		return;
 	}
 	public List<Block> getBlocksInRadius(Location center){
 		Block block = null;
@@ -141,7 +136,7 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		    for (int y = -radius; y < radius; y++) {
 		        for (int z = -radius; z < radius; z++) {
 		            if (x * x + y * y + z * z <= radius * radius) { 
-		            	if(isEarthbendable((center.clone().add(x, y, z).getBlock()).getType())){
+		            	if(EarthAbility.isEarthbendable(player, center.clone().add(x, y, z).getBlock())) {
 		            	block = center.clone().add(x, y, z).getBlock();
 		            	blocks.add(block);
 		            	return blocks;
@@ -151,6 +146,16 @@ public class DustCloud extends EarthAbility implements AddonAbility {
 		    }
 		}
 		return blocks;
+	}
+	public void doEffect(Player player, Material m, Location center) {
+		if (player.isSneaking()) {
+			ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
+			if (m == Material.SAND || m == Material.GRAVEL){
+				ParticleEffect.FALLING_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 50);
+			} else {
+				ParticleEffect.BLOCK_DUST.display(new BlockData(m, (byte) 0), radius, 3, radius, 0.1F, 40, center, 500);
+			}
+		}
 	}
 
 	@Override
